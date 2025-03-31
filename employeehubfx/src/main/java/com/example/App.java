@@ -3,36 +3,57 @@ package com.example;
 import java.io.IOException;
 
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-
-/**
- * JavaFX App
- */
+//LOGON - Remember to make it look pretty
 public class App extends Application {
-
-    private static Scene scene;
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        // Create UI elements
+        Label empIdLabel = new Label("Employee ID:");
+        TextField empIdField = new TextField();
+        Label passwordLabel = new Label("Password:");
+        PasswordField passwordField = new PasswordField();
+        Label messageLabel = new Label();
+        Button loginButton = new Button("Login");
+        
+        // Set login action
+        loginButton.setOnAction(e -> {
+            String empId = empIdField.getText();
+            String password = passwordField.getText();
+            
+            if (authenticate(empId, password)) {
+                messageLabel.setText("Login successful!");
+            } else {
+                messageLabel.setText("Invalid Employee ID or Password");
+            }
+        });
+        
+        // Layout setup
+        VBox vbox = new VBox(10, empIdLabel, empIdField, passwordLabel, passwordField, loginButton, messageLabel);
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setMinSize(300, 200);
+        
+        // Create scene and set stage
+        Scene scene = new Scene(vbox, 400, 300);
         stage.setScene(scene);
+        stage.setTitle("Employee Login");
         stage.show();
     }
 
-    static void setRoot(String fxml) throws IOException {
-        scene.setRoot(loadFXML(fxml));
-    }
-
-    private static Parent loadFXML(String fxml) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
-        return fxmlLoader.load();
+    private boolean authenticate(String empId, String password) {
+        // Hardcoded credentials for demonstration
+        return "admin".equals(empId) && "password123".equals(password);
     }
 
     public static void main(String[] args) {
         launch();
     }
-
 }
