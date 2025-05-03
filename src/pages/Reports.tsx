@@ -25,6 +25,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import WorkIcon from '@mui/icons-material/Work';
+import { employees, snoopyPayroll } from '../data/employeeData';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -52,33 +53,98 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-// Mock pay statement data
-const payStatementData = [
-  { id: 1, employeeId: 'EMP001', employeeName: 'John Doe', payDate: '2023-03-15', grossPay: 3958.33, netPay: 2968.75, taxWithholding: 989.58 },
-  { id: 2, employeeId: 'EMP001', employeeName: 'John Doe', payDate: '2023-03-31', grossPay: 3958.33, netPay: 2968.75, taxWithholding: 989.58 },
-  { id: 3, employeeId: 'EMP002', employeeName: 'Jane Smith', payDate: '2023-03-15', grossPay: 3541.67, netPay: 2656.25, taxWithholding: 885.42 },
-  { id: 4, employeeId: 'EMP002', employeeName: 'Jane Smith', payDate: '2023-03-31', grossPay: 3541.67, netPay: 2656.25, taxWithholding: 885.42 },
-  { id: 5, employeeId: 'EMP003', employeeName: 'Robert Johnson', payDate: '2023-03-15', grossPay: 3125.00, netPay: 2343.75, taxWithholding: 781.25 },
-  { id: 6, employeeId: 'EMP003', employeeName: 'Robert Johnson', payDate: '2023-03-31', grossPay: 3125.00, netPay: 2343.75, taxWithholding: 781.25 },
+interface PayStatement {
+  id: number;
+  employeeId: string;
+  employeeName: string;
+  payDate: string;
+  grossPay: number;
+  netPay: number;
+  taxWithholding: number;
+}
+
+interface JobTitleStats {
+  employeeCount: number;
+  totalMonthlyPay: number;
+}
+
+interface DivisionStats {
+  employeeCount: number;
+  totalMonthlyPay: number;
+}
+
+// Remove mock data and use actual data
+const employeeData = employees;
+
+// Generate pay statements from employee data
+const payStatementData: PayStatement[] = employees.map((emp, index) => ({
+  id: index + 1,
+  employeeId: `EMP${emp.empid.toString().padStart(3, '0')}`,
+  employeeName: `${emp.Fname} ${emp.Lname}`,
+  payDate: '2023-03-15',
+  grossPay: emp.Salary / 12,
+  netPay: (emp.Salary / 12) * 0.7, // Assuming 30% total deductions
+  taxWithholding: (emp.Salary / 12) * 0.3
+}));
+
+// Calculate job title statistics from actual data
+const jobTitlePayData = Object.entries(
+  employees.reduce<Record<string, JobTitleStats>>((acc, emp) => {
+    const jobTitle = emp.jobTitle as string;
+    if (!acc[jobTitle]) {
+      acc[jobTitle] = { employeeCount: 0, totalMonthlyPay: 0 };
+    }
+    acc[jobTitle].employeeCount++;
+    acc[jobTitle].totalMonthlyPay += emp.Salary / 12;
+    return acc;
+  }, {})
+).map(([jobTitle, data]) => ({
+  jobTitle,
+  employeeCount: data.employeeCount,
+  totalMonthlyPay: Math.round(data.totalMonthlyPay)
+}));
+
+// Calculate division statistics from actual data
+const divisionPayData = Object.entries(
+  employees.reduce<Record<string, DivisionStats>>((acc, emp) => {
+    const division = emp.division as string;
+    if (!acc[division]) {
+      acc[division] = { employeeCount: 0, totalMonthlyPay: 0 };
+    }
+    acc[division].employeeCount++;
+    acc[division].totalMonthlyPay += emp.Salary / 12;
+    return acc;
+  }, {})
+).map(([division, data]) => ({
+  division,
+  employeeCount: data.employeeCount,
+  totalMonthlyPay: Math.round(data.totalMonthlyPay)
+}));
+
+function calculatePayroll(empid, salary, pay_date, payID) {
+  const weekly = salary / 52;
+  return {
+    payID,
+    pay_date,
+    empid,
+    earnings: weekly,
+    fed_tax: weekly * 0.32,
+    fed_med: weekly * 0.0145,
+    fed_SS: weekly * 0.062,
+    state_tax: weekly * 0.12,
+    retire_401k: weekly * 0.004,
+    health_care: weekly * 0.031
+  };
+}
+
+const payrollData = [
+  calculatePayroll(1, 45000, '2025-01-31', 1),
+  calculatePayroll(2, 48000, '2025-01-31', 2),
+  calculatePayroll(3, 55000, '2025-01-31', 3),
+  calculatePayroll(4, 98000, '2025-01-31', 4),
+  calculatePayroll(5, 43000, '2025-01-31', 5),
 ];
 
-// Mock job title pay data
-const jobTitlePayData = [
-  { jobTitle: 'Software Developer', employeeCount: 8, totalMonthlyPay: 68000 },
-  { jobTitle: 'Marketing Manager', employeeCount: 3, totalMonthlyPay: 25500 },
-  { jobTitle: 'Financial Analyst', employeeCount: 5, totalMonthlyPay: 37500 },
-  { jobTitle: 'HR Specialist', employeeCount: 2, totalMonthlyPay: 13600 },
-  { jobTitle: 'Product Manager', employeeCount: 4, totalMonthlyPay: 36800 },
-];
-
-// Mock division pay data
-const divisionPayData = [
-  { division: 'Engineering', employeeCount: 15, totalMonthlyPay: 127500 },
-  { division: 'Marketing', employeeCount: 8, totalMonthlyPay: 64000 },
-  { division: 'Finance', employeeCount: 7, totalMonthlyPay: 52500 },
-  { division: 'Human Resources', employeeCount: 4, totalMonthlyPay: 28000 },
-  { division: 'Product', employeeCount: 6, totalMonthlyPay: 51000 },
-];
 
 export default function Reports() {
   const { user, isAdmin } = useAuth();
@@ -87,7 +153,7 @@ export default function Reports() {
   const [year, setYear] = useState('2023');
   const [employeeId, setEmployeeId] = useState('all');
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
@@ -200,9 +266,11 @@ export default function Reports() {
                   onChange={handleEmployeeIdChange}
                 >
                   <MenuItem value="all">All Employees</MenuItem>
-                  <MenuItem value="EMP001">John Doe (EMP001)</MenuItem>
-                  <MenuItem value="EMP002">Jane Smith (EMP002)</MenuItem>
-                  <MenuItem value="EMP003">Robert Johnson (EMP003)</MenuItem>
+                  {employees.map((emp) => (
+                    <MenuItem key={emp.empid} value={`EMP${emp.empid.toString().padStart(3, '0')}`}>
+                      {emp.Fname} {emp.Lname} (EMP{emp.empid.toString().padStart(3, '0')})
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             )}

@@ -71,8 +71,8 @@ export const employees: Employee[] = [
     HireDate: '2022-07-03',
     Salary: 55000.00,
     SSN: '111-33-1111',
-    jobTitle: 'Medical Director',
-    division: 'Medical'
+    jobTitle: 'Chief Finn. Officer',
+    division: 'HQ'
   },
   {
     empid: 4,
@@ -82,8 +82,8 @@ export const employees: Employee[] = [
     HireDate: '2022-08-02',
     Salary: 98000.00,
     SSN: '111-44-1111',
-    jobTitle: 'Senior Developer',
-    division: 'Engineering'
+    jobTitle: 'Software Manager',
+    division: 'Technology Engineering'
   },
   {
     empid: 5,
@@ -94,7 +94,7 @@ export const employees: Employee[] = [
     Salary: 43000.00,
     SSN: '111-55-1111',
     jobTitle: 'Software Engineer',
-    division: 'Engineering'
+    division: 'Technology Engineering'
   },
   {
     empid: 6,
@@ -104,8 +104,8 @@ export const employees: Employee[] = [
     HireDate: '2022-10-01',
     Salary: 33000.00,
     SSN: '111-66-1111',
-    jobTitle: 'Junior Developer',
-    division: 'Engineering'
+    jobTitle: 'Software Developer',
+    division: 'Technology Engineering'
   },
   {
     empid: 7,
@@ -115,8 +115,8 @@ export const employees: Employee[] = [
     HireDate: '1973-07-03',
     Salary: 78000.00,
     SSN: '111-77-1111',
-    jobTitle: 'Detective',
-    division: 'Security'
+    jobTitle: 'Software Engineer',
+    division: 'Technology Engineering'
   },
   {
     empid: 8,
@@ -126,8 +126,8 @@ export const employees: Employee[] = [
     HireDate: '1973-07-11',
     Salary: 77000.00,
     SSN: '111-88-1111',
-    jobTitle: 'Security Officer',
-    division: 'Security'
+    jobTitle: 'Software Developer',
+    division: 'Technology Engineering'
   },
   {
     empid: 9,
@@ -137,8 +137,8 @@ export const employees: Employee[] = [
     HireDate: '1973-07-21',
     Salary: 82000.00,
     SSN: '111-99-1111',
-    jobTitle: 'Research Scientist',
-    division: 'R&D'
+    jobTitle: 'Software Engineer',
+    division: 'Technology Engineering'
   },
   {
     empid: 10,
@@ -159,8 +159,8 @@ export const employees: Employee[] = [
     HireDate: '1934-07-01',
     Salary: 18000.00,
     SSN: '222-11-1111',
-    jobTitle: 'Entertainer',
-    division: 'Entertainment'
+    jobTitle: 'Marketing Assistant',
+    division: 'Marketing'
   },
   {
     empid: 12,
@@ -170,8 +170,8 @@ export const employees: Employee[] = [
     HireDate: '1935-04-01',
     Salary: 16000.00,
     SSN: '333-11-1111',
-    jobTitle: 'Entertainer',
-    division: 'Entertainment'
+    jobTitle: 'Marketing Assistant',
+    division: 'Marketing'
   },
   {
     empid: 13,
@@ -181,8 +181,8 @@ export const employees: Employee[] = [
     HireDate: '1935-08-12',
     Salary: 16550.00,
     SSN: '444-11-1111',
-    jobTitle: 'Entertainer',
-    division: 'Entertainment'
+    jobTitle: 'Marketing Assistant',
+    division: 'Marketing'
   },
   {
     empid: 14,
@@ -192,8 +192,8 @@ export const employees: Employee[] = [
     HireDate: '1934-08-01',
     Salary: 15500.00,
     SSN: '555-11-1111',
-    jobTitle: 'Hunting Guide',
-    division: 'Outdoor'
+    jobTitle: 'Software Developer',
+    division: 'Technology Engineering'
   },
   {
     empid: 15,
@@ -203,8 +203,8 @@ export const employees: Employee[] = [
     HireDate: '1937-05-01',
     Salary: 28000.00,
     SSN: '777-11-1111',
-    jobTitle: 'Space Explorer',
-    division: 'Space'
+    jobTitle: 'Software Developer',
+    division: 'Technology Engineering'
   }
 ];
 
@@ -262,13 +262,14 @@ export const divisions: Division[] = [
 
 // Job Titles
 export const jobTitles: JobTitle[] = [
-  { job_title_id: 100, job_title: 'software manager' },
-  { job_title_id: 101, job_title: 'software architect' },
-  { job_title_id: 102, job_title: 'software engineer' },
-  { job_title_id: 103, job_title: 'software developer' },
   { job_title_id: 900, job_title: 'Chief Exec. Officer' },
   { job_title_id: 901, job_title: 'Chief Finn. Officer' },
-  { job_title_id: 902, job_title: 'Chief Info. Officer' }
+  { job_title_id: 902, job_title: 'Chief Info. Officer' },
+  { job_title_id: 100, job_title: 'Software Manager' },
+  { job_title_id: 101, job_title: 'Software Engineer' },
+  { job_title_id: 102, job_title: 'Software Developer' },
+  { job_title_id: 200, job_title: 'Marketing Manager' },
+  { job_title_id: 201, job_title: 'Marketing Assistant' }
 ];
 
 // Helper function to get employee by ID
