@@ -25,7 +25,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import WorkIcon from '@mui/icons-material/Work';
-import { employees, snoopyPayroll } from '../data/employeeData';
+import { employees, Employee } from '../data/employeeData';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -58,9 +58,18 @@ interface PayStatement {
   employeeId: string;
   employeeName: string;
   payDate: string;
+  periodStartDate: string;
+  periodEndDate: string;
   grossPay: number;
   netPay: number;
   taxWithholding: number;
+  federalTax: number;
+  stateTax: number;
+  medicareTax: number;
+  socialSecurityTax: number;
+  retirementDeduction: number;
+  healthInsuranceDeduction: number;
+  otherDeductions: number;
 }
 
 interface JobTitleStats {
@@ -77,15 +86,49 @@ interface DivisionStats {
 const employeeData = employees;
 
 // Generate pay statements from employee data
-const payStatementData: PayStatement[] = employees.map((emp, index) => ({
-  id: index + 1,
-  employeeId: `EMP${emp.empid.toString().padStart(3, '0')}`,
-  employeeName: `${emp.Fname} ${emp.Lname}`,
-  payDate: '2023-03-15',
-  grossPay: emp.Salary / 12,
-  netPay: (emp.Salary / 12) * 0.7, // Assuming 30% total deductions
-  taxWithholding: (emp.Salary / 12) * 0.3
-}));
+const generatePayStatements = (emp: Employee, payDate: string, startDate: string, endDate: string): PayStatement => {
+  const monthlyGrossPay = emp.Salary / 12;
+  const federalTax = monthlyGrossPay * 0.15; // 15% federal tax
+  const stateTax = monthlyGrossPay * 0.05; // 5% state tax
+  const medicareTax = monthlyGrossPay * 0.0145; // 1.45% Medicare
+  const socialSecurityTax = monthlyGrossPay * 0.062; // 6.2% Social Security
+  const retirementDeduction = monthlyGrossPay * 0.05; // 5% 401k
+  const healthInsurance = 150; // Flat rate health insurance
+  
+  const totalDeductions = federalTax + stateTax + medicareTax + socialSecurityTax + retirementDeduction + healthInsurance;
+  const netPay = monthlyGrossPay - totalDeductions;
+  
+  return {
+    id: emp.empid,
+    employeeId: `EMP${emp.empid.toString().padStart(3, '0')}`,
+    employeeName: `${emp.Fname} ${emp.Lname}`,
+    payDate,
+    periodStartDate: startDate,
+    periodEndDate: endDate,
+    grossPay: monthlyGrossPay,
+    netPay,
+    taxWithholding: federalTax + stateTax,
+    federalTax,
+    stateTax,
+    medicareTax,
+    socialSecurityTax,
+    retirementDeduction,
+    healthInsuranceDeduction: healthInsurance,
+    otherDeductions: 0
+  };
+};
+
+// Generate pay statements for all employees
+const payStatementData: PayStatement[] = employees.flatMap(emp => [
+  // First half of March
+  generatePayStatements(emp, '2023-03-15', '2023-03-01', '2023-03-15'),
+  // Second half of March
+  generatePayStatements(emp, '2023-03-31', '2023-03-16', '2023-03-31'),
+  // First half of April
+  generatePayStatements(emp, '2023-04-15', '2023-04-01', '2023-04-15'),
+  // Second half of April
+  generatePayStatements(emp, '2023-04-30', '2023-04-16', '2023-04-30')
+]);
 
 // Calculate job title statistics from actual data
 const jobTitlePayData = Object.entries(
@@ -121,31 +164,6 @@ const divisionPayData = Object.entries(
   totalMonthlyPay: Math.round(data.totalMonthlyPay)
 }));
 
-function calculatePayroll(empid, salary, pay_date, payID) {
-  const weekly = salary / 52;
-  return {
-    payID,
-    pay_date,
-    empid,
-    earnings: weekly,
-    fed_tax: weekly * 0.32,
-    fed_med: weekly * 0.0145,
-    fed_SS: weekly * 0.062,
-    state_tax: weekly * 0.12,
-    retire_401k: weekly * 0.004,
-    health_care: weekly * 0.031
-  };
-}
-
-const payrollData = [
-  calculatePayroll(1, 45000, '2025-01-31', 1),
-  calculatePayroll(2, 48000, '2025-01-31', 2),
-  calculatePayroll(3, 55000, '2025-01-31', 3),
-  calculatePayroll(4, 98000, '2025-01-31', 4),
-  calculatePayroll(5, 43000, '2025-01-31', 5),
-];
-
-
 export default function Reports() {
   const { user, isAdmin } = useAuth();
   const [tabValue, setTabValue] = useState(0);
@@ -169,10 +187,15 @@ export default function Reports() {
     setEmployeeId(event.target.value);
   };
 
-  // Filter pay statements based on employee ID
-  const filteredPayStatements = isAdmin 
-    ? payStatementData 
-    : payStatementData.filter(statement => statement.employeeId === (user?.employeeId || ''));
+  // Filter pay statements based on employee ID and month
+  const filteredPayStatements = payStatementData.filter(statement => {
+    const statementMonth = statement.payDate.split('-')[1].toLowerCase();
+    const monthMatch = month === 'march' ? statementMonth === '03' : statementMonth === '04';
+    const employeeMatch = employeeId === 'all' || statement.employeeId === employeeId;
+    const userMatch = !isAdmin ? statement.employeeId === `EMP${user?.employeeId?.toString().padStart(3, '0')}` : true;
+    
+    return monthMatch && employeeMatch && userMatch;
+  });
 
   // Handle download report
   const handleDownloadReport = () => {
@@ -233,11 +256,8 @@ export default function Reports() {
                 label="Month"
                 onChange={handleMonthChange}
               >
-                <MenuItem value="january">January</MenuItem>
-                <MenuItem value="february">February</MenuItem>
                 <MenuItem value="march">March</MenuItem>
                 <MenuItem value="april">April</MenuItem>
-                {/* Add more months as needed */}
               </Select>
             </FormControl>
             
@@ -250,7 +270,6 @@ export default function Reports() {
                 label="Year"
                 onChange={handleYearChange}
               >
-                <MenuItem value="2022">2022</MenuItem>
                 <MenuItem value="2023">2023</MenuItem>
               </Select>
             </FormControl>
@@ -291,22 +310,34 @@ export default function Reports() {
               <TableHead>
                 <TableRow>
                   <TableCell>Pay Date</TableCell>
+                  <TableCell>Period</TableCell>
                   {isAdmin && <TableCell>Employee ID</TableCell>}
                   {isAdmin && <TableCell>Employee Name</TableCell>}
                   <TableCell align="right">Gross Pay</TableCell>
-                  <TableCell align="right">Tax Withholding</TableCell>
+                  <TableCell align="right">Federal Tax</TableCell>
+                  <TableCell align="right">State Tax</TableCell>
+                  <TableCell align="right">Medicare</TableCell>
+                  <TableCell align="right">Social Security</TableCell>
+                  <TableCell align="right">Retirement</TableCell>
+                  <TableCell align="right">Health Insurance</TableCell>
                   <TableCell align="right">Net Pay</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredPayStatements.map((statement) => (
-                  <TableRow key={statement.id}>
+                  <TableRow key={`${statement.employeeId}-${statement.payDate}`}>
                     <TableCell>{statement.payDate}</TableCell>
+                    <TableCell>{statement.periodStartDate} - {statement.periodEndDate}</TableCell>
                     {isAdmin && <TableCell>{statement.employeeId}</TableCell>}
                     {isAdmin && <TableCell>{statement.employeeName}</TableCell>}
-                    <TableCell align="right">${statement.grossPay.toLocaleString()}</TableCell>
-                    <TableCell align="right">${statement.taxWithholding.toLocaleString()}</TableCell>
-                    <TableCell align="right">${statement.netPay.toLocaleString()}</TableCell>
+                    <TableCell align="right">${statement.grossPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell align="right">${statement.federalTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell align="right">${statement.stateTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell align="right">${statement.medicareTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell align="right">${statement.socialSecurityTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell align="right">${statement.retirementDeduction.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell align="right">${statement.healthInsuranceDeduction.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                    <TableCell align="right">${statement.netPay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

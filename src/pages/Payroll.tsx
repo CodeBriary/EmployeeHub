@@ -19,16 +19,19 @@ import {
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import PaidIcon from '@mui/icons-material/Paid';
+import { employees } from '../data/employeeData';
 
 interface Employee {
-  id: string;
-  name: string;
-  department: string;
-  jobTitle: string;
-  hireDate: string;
-  salary: number;
+  empid: number;
+  Fname: string;
+  Lname: string;
+  email: string;
+  HireDate: string;
+  Salary: number;
   selected: boolean;
   newSalary?: number;
+  jobTitle?: string;
+  division?: string;
 }
 
 export default function Payroll() {
@@ -37,14 +40,12 @@ export default function Payroll() {
   const [increasePercentage, setIncreasePercentage] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
-  const [employees, setEmployees] = useState<Employee[]>([
-    { id: 'EMP001', name: 'John Doe', department: 'Engineering', jobTitle: 'Senior Developer', hireDate: '2018-03-10', salary: 95000, selected: false },
-    { id: 'EMP002', name: 'Jane Smith', department: 'Marketing', jobTitle: 'Marketing Manager', hireDate: '2019-07-15', salary: 85000, selected: false },
-    { id: 'EMP003', name: 'Robert Johnson', department: 'Finance', jobTitle: 'Financial Analyst', hireDate: '2020-01-05', salary: 75000, selected: false },
-    { id: 'EMP004', name: 'Emily Davis', department: 'HR', jobTitle: 'HR Specialist', hireDate: '2017-11-20', salary: 68000, selected: false },
-    { id: 'EMP005', name: 'Michael Wilson', department: 'Engineering', jobTitle: 'Software Engineer', hireDate: '2021-02-15', salary: 80000, selected: false },
-    { id: 'EMP006', name: 'Sarah Brown', department: 'Product', jobTitle: 'Product Manager', hireDate: '2019-04-10', salary: 92000, selected: false },
-  ]);
+  const [employeesList, setEmployeesList] = useState<Employee[]>(
+    employees.map(emp => ({
+      ...emp,
+      selected: false
+    }))
+  );
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [hasFiltered, setHasFiltered] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -81,12 +82,12 @@ export default function Payroll() {
     }
     
     // Filter employees within salary range
-    const filtered = employees.map(emp => {
-      if (emp.salary >= min && emp.salary < max) {
+    const filtered = employeesList.map(emp => {
+      if (emp.Salary >= min && emp.Salary < max) {
         return {
           ...emp,
           selected: true,
-          newSalary: Math.round(emp.salary * (1 + percentage / 100))
+          newSalary: Math.round(emp.Salary * (1 + percentage / 100))
         };
       }
       return { ...emp, selected: false, newSalary: undefined };
@@ -107,18 +108,18 @@ export default function Payroll() {
   const handleSaveChanges = () => {
     // In a real app, this would send updates to the backend
     // For this prototype, we'll just update the local state
-    const updatedEmployees = employees.map(emp => {
-      const filtered = filteredEmployees.find(f => f.id === emp.id);
+    const updatedEmployees = employeesList.map(emp => {
+      const filtered = filteredEmployees.find(f => f.empid === emp.empid);
       if (filtered && filtered.selected) {
         return {
           ...emp,
-          salary: filtered.newSalary!
+          Salary: filtered.newSalary!
         };
       }
       return emp;
     });
     
-    setEmployees(updatedEmployees);
+    setEmployeesList(updatedEmployees);
     setFilteredEmployees([]);
     setHasFiltered(false);
     setShowPreview(false);
@@ -232,8 +233,8 @@ export default function Payroll() {
                 <TableRow>
                   <TableCell>Employee ID</TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell>Department</TableCell>
-                  <TableCell>Job Title</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Hire Date</TableCell>
                   <TableCell align="right">Current Salary</TableCell>
                   <TableCell align="right">New Salary</TableCell>
                   <TableCell align="right">Difference</TableCell>
@@ -242,16 +243,16 @@ export default function Payroll() {
               <TableBody>
                 {filteredEmployees.map((employee) => (
                   <TableRow 
-                    key={employee.id}
+                    key={employee.empid}
                     sx={{
                       backgroundColor: employee.selected ? 'rgba(25, 118, 210, 0.08)' : 'inherit'
                     }}
                   >
-                    <TableCell>{employee.id}</TableCell>
-                    <TableCell>{employee.name}</TableCell>
-                    <TableCell>{employee.department}</TableCell>
-                    <TableCell>{employee.jobTitle}</TableCell>
-                    <TableCell align="right">${employee.salary.toLocaleString()}</TableCell>
+                    <TableCell>EMP{employee.empid.toString().padStart(3, '0')}</TableCell>
+                    <TableCell>{employee.Fname} {employee.Lname}</TableCell>
+                    <TableCell>{employee.email}</TableCell>
+                    <TableCell>{new Date(employee.HireDate).toLocaleDateString()}</TableCell>
+                    <TableCell align="right">${employee.Salary.toLocaleString()}</TableCell>
                     <TableCell align="right">
                       {employee.selected 
                         ? `$${employee.newSalary?.toLocaleString()}` 
@@ -260,7 +261,7 @@ export default function Payroll() {
                     <TableCell align="right">
                       {employee.selected && employee.newSalary 
                         ? <>
-                            +${(employee.newSalary - employee.salary).toLocaleString()} 
+                            +${(employee.newSalary - employee.Salary).toLocaleString()} 
                             <Typography component="span" color="text.secondary" sx={{ ml: 1 }}>
                               ({parseFloat(increasePercentage)}%)
                             </Typography>
@@ -298,19 +299,19 @@ export default function Payroll() {
                 <TableRow>
                   <TableCell>Employee ID</TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell>Department</TableCell>
-                  <TableCell>Job Title</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Hire Date</TableCell>
                   <TableCell align="right">Current Salary</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {employees.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell>{employee.id}</TableCell>
-                    <TableCell>{employee.name}</TableCell>
-                    <TableCell>{employee.department}</TableCell>
-                    <TableCell>{employee.jobTitle}</TableCell>
-                    <TableCell align="right">${employee.salary.toLocaleString()}</TableCell>
+                {employeesList.map((employee) => (
+                  <TableRow key={employee.empid}>
+                    <TableCell>EMP{employee.empid.toString().padStart(3, '0')}</TableCell>
+                    <TableCell>{employee.Fname} {employee.Lname}</TableCell>
+                    <TableCell>{employee.email}</TableCell>
+                    <TableCell>{new Date(employee.HireDate).toLocaleDateString()}</TableCell>
+                    <TableCell align="right">${employee.Salary.toLocaleString()}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
