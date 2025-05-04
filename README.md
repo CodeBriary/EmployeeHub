@@ -53,34 +53,71 @@ The software development team was tasked with delivering a new, working employee
 - Database: MySQL
 - Development Tools: dBeaver, Vite
 
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 - Node.js (v14 or higher)
-- MySQL Server
+- MySQL Server (v8.0 or higher)
 - dBeaver (for database management)
+- Git
 
-### Installation
-1. Clone the repository:
+## Detailed Setup Instructions
+
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/CodeBriary/EmployeeHub.git
+cd EmployeeHub
 ```
 
-2. Install dependencies:
+### 2. Install Dependencies
 ```bash
-cd EmployeeHub
 npm install
 ```
 
-3. Set up the database:
-- Import the provided MySQL scripts:
-  - `employeeData_MySQL_create.sql`
-  - `employeeData_INSERT_datum.sql`
+### 3. Database Setup
+1. Install MySQL Server if not already installed
+2. Open dBeaver and create a new database connection:
+   - Host: localhost
+   - Port: 3306
+   - Database: employeeData
+   - Username: your_mysql_username
+   - Password: your_mysql_password
 
-4. Start the development server:
+3. Create the database:
+```sql
+CREATE DATABASE employeeData;
+USE employeeData;
+```
+
+4. Import the database scripts in order:
+   - First run: `employeeData_MySQL_create.sql`
+   - Then run: `employeeData_INSERT_datum.sql`
+
+### 4. Environment Configuration
+Create a `.env` file in the root directory with the following variables:
+```env
+VITE_API_URL=http://localhost:3000
+VITE_DB_HOST=localhost
+VITE_DB_USER=your_mysql_username
+VITE_DB_PASSWORD=your_mysql_password
+VITE_DB_NAME=employeeData
+```
+
+### 5. Start the Development Server
 ```bash
 npm run dev
 ```
+The application will be available at http://localhost:5173 (or the next available port if 5173 is in use)
+
+## Test Accounts
+
+### Admin User
+- Username: admin
+- Password: admin123
+- Access: Full system access
+
+### Regular Employee
+- Username: employee
+- Password: employee123
+- Access: Limited to own data
 
 ## Project Structure
 ```
@@ -94,6 +131,44 @@ EmployeeHub/
 ├── public/            # Static assets
 └── database/         # Database scripts and schemas
 ```
+
+## Testing the Application
+
+### 1. Login Testing
+- Test admin login with full access
+- Test employee login with limited access
+- Verify role-based access control
+
+### 2. Employee Management
+- Search for employees using different criteria
+- Verify admin can edit employee information
+- Verify regular employees can only view their own data
+
+### 3. Payroll Features
+- Test salary update functionality
+- Verify pay statement generation
+- Check report generation for different time periods
+
+### 4. Reports
+- Generate and verify all report types
+- Check data accuracy in reports
+- Verify access restrictions
+
+## Common Issues and Solutions
+
+### Database Connection Issues
+- Verify MySQL service is running
+- Check database credentials in .env file
+- Ensure database scripts were executed successfully
+
+### Port Conflicts
+- If port 5173 is in use, Vite will automatically try the next available port
+- Check the terminal output for the correct port number
+
+### Authentication Issues
+- Clear browser cache and cookies
+- Verify user credentials
+- Check authentication context implementation
 
 ## Security Features
 - Role-based access control
