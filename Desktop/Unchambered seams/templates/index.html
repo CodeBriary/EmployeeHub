@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8">
+    <!-- Search and Filter Section -->
+    <div class="bg-white mb-8">
+        <form action="{{ url_for('index') }}" method="GET" class="space-y-4">
+            <div class="flex flex-wrap items-center gap-4">
+                <!-- Search -->
+                <div class="flex-1 min-w-[200px]">
+                    <input type="text" name="q" id="q" value="{{ search_query }}" 
+                           class="w-full border-0 border-b border-gray-200 focus:border-black focus:ring-0 text-sm"
+                           placeholder="Search...">
+                </div>
+                
+                <!-- Category Filter -->
+                <div class="w-[150px]">
+                    <select name="category" id="category"
+                            class="w-full border-0 border-b border-gray-200 focus:border-black focus:ring-0 text-sm">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Price Range -->
+                <div class="flex gap-2 w-[200px]">
+                    <input type="number" name="min_price" id="min_price" value="{{ min_price }}" step="0.01"
+                           class="w-full border-0 border-b border-gray-200 focus:border-black focus:ring-0 text-sm"
+                           placeholder="Min">
+                    <input type="number" name="max_price" id="max_price" value="{{ max_price }}" step="0.01"
+                           class="w-full border-0 border-b border-gray-200 focus:border-black focus:ring-0 text-sm"
+                           placeholder="Max">
+                </div>
+                
+                <!-- Sort Options -->
+                <div class="flex gap-2 w-[150px]">
+                    <select name="sort_by" id="sort_by"
+                            class="w-full border-0 border-b border-gray-200 focus:border-black focus:ring-0 text-sm">
+                        <option value="date_added" {% if sort_by == 'date_added' %}selected{% endif %}>Newest</option>
+                        <option value="price" {% if sort_by == 'price' %}selected{% endif %}>Price</option>
+                        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+                    </select>
+                    <select name="sort_order" id="sort_order"
+                            class="w-[50px] border-0 border-b border-gray-200 focus:border-black focus:ring-0 text-sm">
+                        <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>↓</option>
+                        <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>↑</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="border border-black px-4 py-1 text-sm hover:bg-black hover:text-white">
+                    Apply
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Product Grid -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    {% for item in items %}
+    <a href="{{ url_for('product_detail', id=item.id) }}" class="product-card group">
+        <div class="relative aspect-[3/4] overflow-hidden bg-gray-100">
+            {% if item.image_file %}
+            <img src="{{ url_for('static', filename='uploads/' + item.image_file) }}" 
+                 alt="{{ item.name }}" 
+                 class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300">
+            {% elif item.image_url %}
+            <img src="{{ item.image_url }}" 
+                 alt="{{ item.name }}" 
+                 class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300">
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center">
+                <i class="fas fa-tshirt text-4xl text-gray-400"></i>
+            </div>
+            {% endif %}
+            
+            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity"></div>
+        </div>
+        
+        <div class="mt-2">
+            <h3 class="text-sm font-medium truncate">{{ item.name }}</h3>
+            <p class="text-xs text-gray-500 truncate">{{ item.category }}</p>
+            <div class="mt-1 flex justify-between items-center">
+                <span class="text-sm font-medium">${{ "%.2f"|format(item.price) }}</span>
+                <span class="text-xs text-gray-500">{{ item.size }}</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+{% if not items %}
+<div class="text-center py-12">
+    <i class="fas fa-box-open text-6xl text-gray-400 mb-4"></i>
+    <h3 class="text-xl text-gray-600">No items found</h3>
+    <p class="text-gray-500 mt-2">Try adjusting your search or filter criteria.</p>
+</div>
+{% endif %}
+{% endblock %} 
